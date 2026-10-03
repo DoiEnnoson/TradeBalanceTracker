@@ -1,8 +1,10 @@
 """
 monitor.py — täglicher Ping gegen china-trade-monthly.
 Schreibt neu aufgetauchte Datenpunkte und Revisionen in state/releases.json.
+Nach jedem Lauf wird data/china_trade_monthly.csv mit dem aktuellsten Stand aktualisiert.
 """
 
+import csv
 import json
 import os
 import requests
@@ -10,6 +12,7 @@ from datetime import datetime, timezone
 
 API_URL    = "https://chinadata.live/api/v2/data/china-trade-monthly"
 STATE_FILE = "state/releases.json"
+CSV_FILE   = "data/china_trade_monthly.csv"
 
 
 def now_iso() -> str:
@@ -27,6 +30,25 @@ def load_state() -> dict:
 def save_state(state: dict) -> None:
     with open(STATE_FILE, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
+
+
+def export_csv(known: dict) -> None:
+    os.makedirs("data", exist_ok=True)
+    rows = []
+    for date in sorted(known.keys()):
+        latest = known[date]["revisions"][-1]
+        rows.append({
+            "date":             date,
+            "export_mln_usd":   latest["export"],
+            "import_mln_usd":   latest["import"],
+            "balance_mln_usd":  latest["balance"],
+            "total_mln_usd":    latest["total"],
+        })
+    with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["date", "export_mln_usd", "import_mln_usd", "balance_mln_usd", "total_mln_usd"])
+        writer.writeheader()
+        writer.writerows(rows)
+    print(f"CSV aktualisiert: {CSV_FILE} ({len(rows)} Monate)")
 
 
 def fetch() -> list[dict]:
@@ -53,7 +75,6 @@ def main() -> None:
         fp   = fingerprint(point)
 
         if date not in known:
-            # Neuer Monat — erstmals gesehen
             known[date] = {
                 "first_seen": checked,
                 "revisions": [
@@ -67,10 +88,9 @@ def main() -> None:
                     }
                 ],
             }
-            log.append(f"NEU       {date}  balance={float(point["balance"]):>12,.2f}  (first seen {checked})")
+            log.append(f"NEU       {date}  balance={float(point['balance']):>12,.2f}  (first seen {checked})")
 
         else:
-            # Bekannter Monat — Revision?
             seen_fps = {r["fingerprint"] for r in known[date]["revisions"]}
             if fp not in seen_fps:
                 known[date]["revisions"].append(
@@ -83,11 +103,12 @@ def main() -> None:
                         "fingerprint": fp,
                     }
                 )
-                log.append(f"REVISION  {date}  balance={float(point["balance"]):>12,.2f}  (revision #{len(known[date]['revisions'])})")
+                log.append(f"REVISION  {date}  balance={float(point['balance']):>12,.2f}  (revision #{len(known[date]['revisions'])})")
 
     state["last_checked"] = checked
     state["data_points"]  = known
     save_state(state)
+    export_csv(known)
 
     if log:
         print("Änderungen erkannt:")

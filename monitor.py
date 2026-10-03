@@ -67,7 +67,7 @@ def main() -> None:
                     }
                 ],
             }
-            log.append(f"NEU       {date}  balance={point['balance']:>12,.2f}  (first seen {checked})")
+            log.append(f"NEU       {date}  balance={float(point["balance"]):>12,.2f}  (first seen {checked})")
 
         else:
             # Bekannter Monat — Revision?
@@ -83,7 +83,7 @@ def main() -> None:
                         "fingerprint": fp,
                     }
                 )
-                log.append(f"REVISION  {date}  balance={point['balance']:>12,.2f}  (revision #{len(known[date]['revisions'])})")
+                log.append(f"REVISION  {date}  balance={float(point["balance"]):>12,.2f}  (revision #{len(known[date]['revisions'])})")
 
     state["last_checked"] = checked
     state["data_points"]  = known

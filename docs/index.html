@@ -201,6 +201,23 @@
   </div>
 </div>
 
+<!-- Energy Imports -->
+<div class="slabel">Energy Imports — Source: CEM / GACC</div>
+<div class="g2">
+  <div class="cb">
+    <div class="ct">Imports by Energy Carrier</div>
+    <div class="cs">Monthly · Mt · Coal · Crude Oil · Gas · GACC</div>
+    <div class="wrap-sm"><canvas id="c-energy-vol"></canvas></div>
+    <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+  </div>
+  <div class="cb">
+    <div class="ct">Import Change Year-on-Year</div>
+    <div class="cs">Volume YoY % · Coal · Crude Oil · Gas · GACC</div>
+    <div class="wrap-sm"><canvas id="c-energy-yoy"></canvas></div>
+    <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+  </div>
+</div>
+
 <!-- Bloc YoY -->
 <div class="slabel">Partner YoY Growth — Latest Month</div>
 <div class="cb">
@@ -533,6 +550,77 @@ function renderDonuts(pa, m) {
   donut('c-d-im',    imVals,  totIm);
 }
 
+// ── ENERGY IMPORTS ───────────────────────────────────────────────
+const CEM_BASE = 'https://raw.githubusercontent.com/DoiEnnoson/china-energy-monitor/main/data/fuel-imports/';
+
+function parseEnergy(rows) {
+  return rows
+    .filter(d => d.period && String(d.period).length === 6)
+    .map(d => {
+      const s = String(d.period);
+      return { ...d, date: s.slice(0,4) + '-' + s.slice(4,6) };
+    });
+}
+
+function renderEnergyVol(en) {
+  // Stacked bar: coal (Y), crude oil (O), gas (B)
+  new Chart(document.getElementById('c-energy-vol'), {
+    type: 'bar',
+    data: {
+      labels: en.map(d => d.date),
+      datasets: [
+        { label: 'Coal',      data: en.map(d => d.coal_mt),      backgroundColor: Y  + 'cc', borderWidth: 0, stack: 'e' },
+        { label: 'Crude Oil', data: en.map(d => d.crude_oil_mt), backgroundColor: O  + 'cc', borderWidth: 0, stack: 'e' },
+        { label: 'Gas',       data: en.map(d => d.gas_mt),       backgroundColor: LB + 'cc', borderWidth: 0, stack: 'e' }
+      ]
+    },
+    options: {
+      ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins, legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } } },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => v.toFixed(0)+' Mt', { stacked: true })
+      }
+    }
+  });
+}
+
+function renderEnergyYoY(en) {
+  // Filter rows with at least one YoY value
+  const rows = en.filter(d => d.coal_mt_yoy_pct != null || d.crude_oil_mt_yoy_pct != null || d.gas_mt_yoy_pct != null);
+
+  const mkLine = (field, label, color) => ({
+    label,
+    data: rows.map(d => d[field] ?? null),
+    borderColor: color,
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    pointRadius: 0,
+    tension: 0.3,
+    spanGaps: false
+  });
+
+  new Chart(document.getElementById('c-energy-yoy'), {
+    type: 'line',
+    data: {
+      labels: rows.map(d => d.date),
+      datasets: [
+        mkLine('coal_mt_yoy_pct',      'Coal',      Y),
+        mkLine('crude_oil_mt_yoy_pct', 'Crude Oil', O),
+        mkLine('gas_mt_yoy_pct',       'Gas',       LB)
+      ]
+    },
+    options: {
+      ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins, legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } } },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => v.toFixed(0)+'%', { beginAtZero: false })
+      }
+    }
+  });
+}
+
 // ── BLOC YOY ─────────────────────────────────────────────────────
 function renderBlocYoY(pa) {
   const last = pa[pa.length - 1];
@@ -591,13 +679,21 @@ Promise.all([
   fetchCSV('china_trade_monthly.csv'),
   fetchCSV('china_trade_freight.csv'),
   fetchCSV('china_trade_commodities.csv'),
-  fetchCSV('china_trade_partners.csv')
-]).then(([m, fr, co, pa]) => {
+  fetchCSV('china_trade_partners.csv'),
+  new Promise((res, rej) => Papa.parse(CEM_BASE + 'gacc_imports.csv', {
+    download: true, header: true, dynamicTyping: true,
+    complete: r => res(r.data.filter(d => d.period)),
+    error: rej
+  }))
+]).then(([m, fr, co, pa, en]) => {
+  const energy = parseEnergy(en);
   renderYTD(m);
   renderFlows(m);
   renderYoY(m);
   renderVpU(m, fr);
   renderIC(co);
+  renderEnergyVol(energy);
+  renderEnergyYoY(energy);
   renderDiverging(pa);
   renderDonuts(pa, m);
   renderBlocYoY(pa);

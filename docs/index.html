@@ -83,6 +83,22 @@
 
     canvas { display: block; }
 
+    /* Energy section */
+    .energy-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .energy-left  { display: flex; flex-direction: column; gap: 1rem; }
+    .energy-right { display: flex; flex-direction: column; gap: 1rem; }
+    .ekpi {
+      background: var(--card); border: 1px solid var(--border);
+      border-top: 3px solid var(--O); padding: 1.4rem 1.5rem 1.3rem;
+      flex: 1;
+    }
+    .ekpi-lbl { font-size: 0.62rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.7rem; }
+    .ekpi-val { font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; color: var(--text); }
+    .ekpi-yoy { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
+    .ekpi-yoy.pos { color: var(--G); }
+    .ekpi-yoy.neg { color: var(--O); }
+    .ekpi-sub { font-size: 0.65rem; color: var(--dim); margin-top: 0.3rem; }
+
     footer {
       margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border);
       display: flex; justify-content: space-between;
@@ -203,18 +219,23 @@
 
 <!-- Energy Imports -->
 <div class="slabel">Energy Imports — Source: CEM / GACC</div>
-<div class="g2">
-  <div class="cb">
-    <div class="ct">Imports by Energy Carrier</div>
-    <div class="cs">Monthly · Mt · Coal · Crude Oil · Gas · GACC</div>
-    <div class="wrap-sm"><canvas id="c-energy-vol"></canvas></div>
-    <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+<div class="energy-grid">
+  <div class="energy-left">
+    <div class="cb">
+      <div class="ct">Imports by Energy Carrier</div>
+      <div class="cs">Monthly · Mt · GACC</div>
+      <div class="wrap-sm"><canvas id="c-energy-vol"></canvas></div>
+      <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+    </div>
+    <div class="cb">
+      <div class="ct">Import Change Year-on-Year</div>
+      <div class="cs">Volume YoY % · GACC</div>
+      <div class="wrap-sm"><canvas id="c-energy-yoy"></canvas></div>
+      <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+    </div>
   </div>
-  <div class="cb">
-    <div class="ct">Import Change Year-on-Year</div>
-    <div class="cs">Volume YoY % · Coal · Crude Oil · Gas · GACC</div>
-    <div class="wrap-sm"><canvas id="c-energy-yoy"></canvas></div>
-    <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+  <div class="energy-right" id="energy-kpis">
+    <!-- filled by JS -->
   </div>
 </div>
 
@@ -621,6 +642,43 @@ function renderEnergyYoY(en) {
   });
 }
 
+// ── ENERGY YTD KPIs ──────────────────────────────────────────────
+function renderEnergyYTD(en) {
+  const sorted = [...en].sort((a,b) => a.date.localeCompare(b.date));
+  const latest  = sorted[sorted.length - 1];
+  const [ly, lmo] = latest.date.split('-').map(Number);
+  const py = ly - 1;
+
+  const sumYTD = yr => en
+    .filter(d => { const [y,mo] = d.date.split('-').map(Number); return y===yr && mo<=lmo; })
+    .reduce((a,d) => ({
+      coal: a.coal + (d.coal_mt      || 0),
+      oil:  a.oil  + (d.crude_oil_mt || 0),
+      gas:  a.gas  + (d.gas_mt       || 0)
+    }), { coal:0, oil:0, gas:0 });
+
+  const cur = sumYTD(ly), prev = sumYTD(py);
+  const pct    = (c,p) => p > 0 ? ((c/p)-1)*100 : null;
+  const fmtPct = v => v === null ? 'n/a' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
+  const fmtMt  = v => v.toFixed(1) + ' Mt';
+  const period = `Jan–${latest.date}`;
+
+  const items = [
+    { label: 'Coal YTD',      val: cur.coal, yoy: pct(cur.coal, prev.coal), color: Y  },
+    { label: 'Crude Oil YTD', val: cur.oil,  yoy: pct(cur.oil,  prev.oil),  color: O  },
+    { label: 'Gas YTD',       val: cur.gas,  yoy: pct(cur.gas,  prev.gas),  color: LB },
+  ];
+
+  document.getElementById('energy-kpis').innerHTML = items.map(item => `
+    <div class="ekpi" style="border-top-color:${item.color}">
+      <div class="ekpi-lbl">${item.label}</div>
+      <div class="ekpi-val">${fmtMt(item.val)}</div>
+      <div class="ekpi-yoy ${(item.yoy ?? 0) >= 0 ? 'pos' : 'neg'}">${fmtPct(item.yoy)} vs ${py}</div>
+      <div class="ekpi-sub">${period}</div>
+    </div>
+  `).join('');
+}
+
 // ── BLOC YOY ─────────────────────────────────────────────────────
 function renderBlocYoY(pa) {
   const last = pa[pa.length - 1];
@@ -694,6 +752,7 @@ Promise.all([
   renderIC(co);
   renderEnergyVol(energy);
   renderEnergyYoY(energy);
+  renderEnergyYTD(energy);
   renderDiverging(pa);
   renderDonuts(pa, m);
   renderBlocYoY(pa);

@@ -658,9 +658,9 @@ function renderBlocYoY(pa) {
           position: 'top', align: 'end',
           labels: {
             boxWidth: 10, padding: 14,
-            generateLabels: () => [
-              { text: 'Export YoY %', fillStyle: G  + 'bb', strokeStyle: G,  lineWidth: 1, datasetIndex: 0 },
-              { text: 'Import YoY %', fillStyle: DG + 'bb', strokeStyle: DG, lineWidth: 1, datasetIndex: 1 }
+            generateLabels: chart => [
+              { text: 'Export YoY %', fillStyle: G  + 'bb', strokeStyle: G,  lineWidth: 1, hidden: !chart.isDatasetVisible(0), datasetIndex: 0 },
+              { text: 'Import YoY %', fillStyle: DG + 'bb', strokeStyle: DG, lineWidth: 1, hidden: !chart.isDatasetVisible(1), datasetIndex: 1 }
             ]
           }
         },

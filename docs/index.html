@@ -693,8 +693,19 @@ function renderEnergyYTD(en) {
 
 // ── BLOC YOY ─────────────────────────────────────────────────────
 function renderBlocYoY(pa) {
-  const last = pa[pa.length - 1];
+  const last = [...pa].reverse().find(row =>
+    BLOCS.some(b => row[`${b.key}_export_yoy_pct`] != null && row[`${b.key}_export_yoy_pct`] !== '')
+  ) || pa[pa.length - 1];
   if (!last) return;
+
+  // Update section label to reflect which month is actually shown
+  const slabel = document.getElementById('c-bloc-yoy')
+    .closest('.cb').previousElementSibling;
+  if (slabel && slabel.classList.contains('slabel') && last.date) {
+    const [y, m] = last.date.split('-');
+    const mo = new Date(+y, +m - 1).toLocaleString('en', {month:'short'});
+    slabel.textContent = `Partner YoY Growth — ${mo} ${y}`;
+  }
 
   const exYoY = BLOCS.map(b => last[`${b.key}_export_yoy_pct`] ?? null);
   const imYoY = BLOCS.map(b => last[`${b.key}_import_yoy_pct`] ?? null);

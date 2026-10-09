@@ -249,8 +249,8 @@
 </div>
 
 <footer>
-  <span>Data: <a href="https://github.com/DoiEnnoson/TradeBalanceTracker" target="_blank">DoiEnnoson/TradeBalanceTracker</a> · Source: GACC · Updated monthly</span>
-  <span>By <a href="https://chinabusinessspotlight.substack.com" target="_blank">Dói Ennoson</a></span>
+  <span>Source: GACC · Updated monthly</span>
+  <span>By Dói Ennoson · <a href="mailto:doisnews@gmail.com">doisnews(at)gmail.com</a></span>
 </footer>
 
 <script>
@@ -687,25 +687,21 @@ function renderBlocYoY(pa) {
   const exYoY = BLOCS.map(b => last[`${b.key}_export_yoy_pct`] ?? null);
   const imYoY = BLOCS.map(b => last[`${b.key}_import_yoy_pct`] ?? null);
 
+  // Split each series into pos/neg datasets sharing one stack group.
+  // A data point is either pos OR neg — stacking them never overlaps.
+  // Fixed backgroundColor per dataset → legend always shows correct color.
+  const pos = arr => arr.map(v => (v !== null && v >= 0) ? v : null);
+  const neg = arr => arr.map(v => (v !== null && v <  0) ? v : null);
+
   new Chart(document.getElementById('c-bloc-yoy'), {
     type: 'bar',
     data: {
       labels: BLOCS.map(b => b.label),
       datasets: [
-        {
-          label: 'Export YoY %',
-          data: exYoY,
-          backgroundColor: exYoY.map(v => (v ?? 0) >= 0 ? G + 'bb' : O + 'bb'),
-          borderColor:      exYoY.map(v => (v ?? 0) >= 0 ? G : O),
-          borderWidth: 1
-        },
-        {
-          label: 'Import YoY %',
-          data: imYoY,
-          backgroundColor: imYoY.map(v => (v ?? 0) >= 0 ? DG + 'bb' : O + 'bb'),
-          borderColor:      imYoY.map(v => (v ?? 0) >= 0 ? DG : O),
-          borderWidth: 1
-        }
+        { label: 'Export YoY %', data: pos(exYoY), backgroundColor: G +'bb', borderColor: G,  borderWidth:1, stack:'ex' },
+        { label: '_ex_neg',       data: neg(exYoY), backgroundColor: O +'bb', borderColor: O,  borderWidth:1, stack:'ex' },
+        { label: 'Import YoY %', data: pos(imYoY), backgroundColor: DG+'bb', borderColor: DG, borderWidth:1, stack:'im' },
+        { label: '_im_neg',       data: neg(imYoY), backgroundColor: O +'55', borderColor: O,  borderWidth:1, stack:'im' },
       ]
     },
     options: {
@@ -716,13 +712,19 @@ function renderBlocYoY(pa) {
           position: 'top', align: 'end',
           labels: {
             boxWidth: 10, padding: 14,
-            generateLabels: chart => [
-              { text: 'Export YoY %', fillStyle: G  + 'bb', strokeStyle: G,  lineWidth: 1, hidden: !chart.isDatasetVisible(0), datasetIndex: 0 },
-              { text: 'Import YoY %', fillStyle: DG + 'bb', strokeStyle: DG, lineWidth: 1, hidden: !chart.isDatasetVisible(1), datasetIndex: 1 }
-            ]
+            filter: item => !item.text.startsWith('_')
           }
         },
-        tooltip: { ...TT, callbacks: { label: ctx => ctx.raw !== null ? ctx.raw.toFixed(1) + '%' : 'n/a' } }
+        tooltip: {
+          ...TT,
+          callbacks: {
+            label: ctx => {
+              if (ctx.raw === null) return '';
+              const lbl = ctx.dataset.label.startsWith('_') ? (ctx.datasetIndex < 2 ? 'Export YoY %' : 'Import YoY %') : ctx.dataset.label;
+              return ` ${lbl}: ${ctx.raw.toFixed(1)}%`;
+            }
+          }
+        }
       },
       scales: {
         x: xCfg(),
@@ -757,6 +759,7 @@ Promise.all([
   renderDonuts(pa, m);
   renderBlocYoY(pa);
 }).catch(err => {
+
   console.error(err);
   document.body.insertAdjacentHTML('afterbegin',
     '<p style="padding:2rem;color:#FF5500;font-family:monospace">Data load failed — check console.</p>');

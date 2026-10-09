@@ -645,28 +645,40 @@ function renderEnergyYoY(en) {
 // ── ENERGY YTD KPIs ──────────────────────────────────────────────
 function renderEnergyYTD(en) {
   const sorted = [...en].sort((a,b) => a.date.localeCompare(b.date));
-  const latest  = sorted[sorted.length - 1];
+  const latest = sorted[sorted.length - 1];
   const [ly, lmo] = latest.date.split('-').map(Number);
   const py = ly - 1;
 
-  const sumYTD = yr => en
-    .filter(d => { const [y,mo] = d.date.split('-').map(Number); return y===yr && mo<=lmo; })
-    .reduce((a,d) => ({
-      coal: a.coal + (d.coal_mt      || 0),
-      oil:  a.oil  + (d.crude_oil_mt || 0),
-      gas:  a.gas  + (d.gas_mt       || 0)
-    }), { coal:0, oil:0, gas:0 });
+  // YoY% is pre-calculated in the CSV.
+  // Back-calculate prior year: prev_month = cur_month / (1 + yoy/100).
+  // Months without YoY (Jan/Feb) contribute to the YTD total but not the comparison.
+  const calc = (curField, yoyField) => {
+    let total = 0, cmpCur = 0, cmpPrev = 0, hasYoY = false;
+    en.filter(d => { const [y,mo] = d.date.split('-').map(Number); return y===ly && mo<=lmo; })
+      .forEach(d => {
+        const v   = d[curField]  ?? 0;
+        const yoy = d[yoyField];
+        total += v;
+        if (yoy != null) {
+          cmpCur  += v;
+          cmpPrev += v / (1 + yoy / 100);
+          hasYoY = true;
+        }
+      });
+    return { total, yoypct: hasYoY && cmpPrev > 0 ? ((cmpCur / cmpPrev) - 1) * 100 : null };
+  };
 
-  const cur = sumYTD(ly), prev = sumYTD(py);
-  const pct    = (c,p) => p > 0 ? ((c/p)-1)*100 : null;
+  const coal = calc('coal_mt',      'coal_mt_yoy_pct');
+  const oil  = calc('crude_oil_mt', 'crude_oil_mt_yoy_pct');
+  const gas  = calc('gas_mt',       'gas_mt_yoy_pct');
+
   const fmtPct = v => v === null ? 'n/a' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
   const fmtMt  = v => v.toFixed(1) + ' Mt';
-  const period = `Jan–${latest.date}`;
 
   const items = [
-    { label: 'Coal YTD',      val: cur.coal, yoy: pct(cur.coal, prev.coal), color: Y  },
-    { label: 'Crude Oil YTD', val: cur.oil,  yoy: pct(cur.oil,  prev.oil),  color: O  },
-    { label: 'Gas YTD',       val: cur.gas,  yoy: pct(cur.gas,  prev.gas),  color: LB },
+    { label: 'Coal YTD',      val: coal.total, yoy: coal.yoypct, color: Y  },
+    { label: 'Crude Oil YTD', val: oil.total,  yoy: oil.yoypct,  color: O  },
+    { label: 'Gas YTD',       val: gas.total,  yoy: gas.yoypct,  color: LB },
   ];
 
   document.getElementById('energy-kpis').innerHTML = items.map(item => `
@@ -674,7 +686,7 @@ function renderEnergyYTD(en) {
       <div class="ekpi-lbl">${item.label}</div>
       <div class="ekpi-val">${fmtMt(item.val)}</div>
       <div class="ekpi-yoy ${(item.yoy ?? 0) >= 0 ? 'pos' : 'neg'}">${fmtPct(item.yoy)} vs ${py}</div>
-      <div class="ekpi-sub">${period}</div>
+      <div class="ekpi-sub">Jan–${latest.date}</div>
     </div>
   `).join('');
 }

@@ -15,10 +15,11 @@
       --dim:    #999999;
       --O:  #FF5500;
       --G:  #00FF85;
-      --B:  #00B4FF;
-      --Y:  #FFE500;
-      --P:  #CC00FF;
-      --PK: #FF0066;
+      --B:  #1D3ECF;
+      --Y:  #E6AF00;
+      --P:  #632618;
+      --R:  #E9171C;
+      --LB: #7A92DF;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -218,22 +219,24 @@
 const BASE = 'https://raw.githubusercontent.com/DoiEnnoson/TradeBalanceTracker/main/data/';
 
 // Palette
-const O  = '#FF5500';
-const G  = '#00FF85';
-const B  = '#00B4FF';
-const Y  = '#FFE500';
-const P  = '#CC00FF';
-const PK = '#FF0066';
-const W  = '#ffffff';
-const DIM = '#333333';
+const O  = '#FF5500';   // neon orange — imports, negative
+const G  = '#00FF85';   // neon green  — exports, positive
+const W  = '#ffffff';   // white       — balance line
+const DIM = '#444444';  // dimmed      — "Other" donut segment
+// Bloc colors
+const B  = '#1D3ECF';   // deep blue   — EU
+const R  = '#E9171C';   // red         — USA
+const Y  = '#E6AF00';   // golden      — ASEAN
+const P  = '#632618';   // dark brown  — Russia
+const LB = '#7A92DF';   // periwinkle  — BRICS-4
 
 // Bloc definitions
 const BLOCS = [
   { key: 'eu',     label: 'EU',      c: B  },
-  { key: 'usa',    label: 'USA',     c: O  },
+  { key: 'usa',    label: 'USA',     c: R  },
   { key: 'asean',  label: 'ASEAN',   c: Y  },
   { key: 'russia', label: 'Russia',  c: P  },
-  { key: 'brics4', label: 'BRICS-4', c: PK },
+  { key: 'brics4', label: 'BRICS-4', c: LB },
 ];
 
 // Chart.js defaults
@@ -486,7 +489,7 @@ function renderDonuts(pa, m) {
   const totIm = lastM.import_mln_usd || 1;
   const totTr = lastM.total_mln_usd  || 1;
 
-  const colors = [...BLOCS.map(b => b.c), DIM];
+  const colors = [B, R, Y, P, LB, DIM];
   const labels = [...BLOCS.map(b => b.label), 'Other'];
 
   const donut = (id, values, total) => {

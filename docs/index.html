@@ -87,17 +87,6 @@
     .energy-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .energy-left  { display: flex; flex-direction: column; gap: 1rem; }
     .energy-right { display: flex; flex-direction: column; gap: 1rem; }
-    .ekpi {
-      background: var(--card); border: 1px solid var(--border);
-      border-top: 3px solid var(--O); padding: 1.4rem 1.5rem 1.3rem;
-      flex: 1;
-    }
-    .ekpi-lbl { font-size: 0.62rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.7rem; }
-    .ekpi-val { font-size: 2.4rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; color: var(--text); }
-    .ekpi-yoy { font-size: 1.1rem; font-weight: 700; margin-top: 0.5rem; }
-    .ekpi-yoy.pos { color: var(--G); }
-    .ekpi-yoy.neg { color: var(--O); }
-    .ekpi-sub { font-size: 0.65rem; color: var(--dim); margin-top: 0.3rem; }
 
     footer {
       margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border);
@@ -234,8 +223,13 @@
       <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
     </div>
   </div>
-  <div class="energy-right" id="energy-kpis">
-    <!-- filled by JS -->
+  <div class="energy-right">
+    <div class="cb" style="flex:1">
+      <div class="ct">Energy Imports YTD vs Prior Year</div>
+      <div class="cs">Cumulative volume YoY % · Coal · Crude Oil · Gas</div>
+      <div class="wrap" style="height:100%;min-height:200px"><canvas id="c-energy-ytd"></canvas></div>
+      <div class="src">DoiEnnoson/china-energy-monitor · GACC</div>
+    </div>
   </div>
 </div>
 
@@ -642,53 +636,59 @@ function renderEnergyYoY(en) {
   });
 }
 
-// ── ENERGY YTD KPIs ──────────────────────────────────────────────
+// ── ENERGY YTD CHART ─────────────────────────────────────────────
 function renderEnergyYTD(en) {
   const sorted = [...en].sort((a,b) => a.date.localeCompare(b.date));
   const latest = sorted[sorted.length - 1];
   const [ly, lmo] = latest.date.split('-').map(Number);
   const py = ly - 1;
 
-  // YoY% is pre-calculated in the CSV.
-  // Back-calculate prior year: prev_month = cur_month / (1 + yoy/100).
-  // Months without YoY (Jan/Feb) contribute to the YTD total but not the comparison.
   const calc = (curField, yoyField) => {
-    let total = 0, cmpCur = 0, cmpPrev = 0, hasYoY = false;
+    let cmpCur = 0, cmpPrev = 0, hasYoY = false;
     en.filter(d => { const [y,mo] = d.date.split('-').map(Number); return y===ly && mo<=lmo; })
       .forEach(d => {
-        const v   = d[curField]  ?? 0;
+        const v = d[curField] ?? 0;
         const yoy = d[yoyField];
-        total += v;
         if (yoy != null) {
           cmpCur  += v;
           cmpPrev += v / (1 + yoy / 100);
           hasYoY = true;
         }
       });
-    return { total, yoypct: hasYoY && cmpPrev > 0 ? ((cmpCur / cmpPrev) - 1) * 100 : null };
+    return hasYoY && cmpPrev > 0 ? ((cmpCur / cmpPrev) - 1) * 100 : null;
   };
 
-  const coal = calc('coal_mt',      'coal_mt_yoy_pct');
-  const oil  = calc('crude_oil_mt', 'crude_oil_mt_yoy_pct');
-  const gas  = calc('gas_mt',       'gas_mt_yoy_pct');
-
-  const fmtPct = v => v === null ? 'n/a' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
-  const fmtMt  = v => v.toFixed(1) + ' Mt';
-
-  const items = [
-    { label: 'Coal YTD',      val: coal.total, yoy: coal.yoypct, color: Y  },
-    { label: 'Crude Oil YTD', val: oil.total,  yoy: oil.yoypct,  color: O  },
-    { label: 'Gas YTD',       val: gas.total,  yoy: gas.yoypct,  color: LB },
+  const vals = [
+    calc('coal_mt',      'coal_mt_yoy_pct'),
+    calc('crude_oil_mt', 'crude_oil_mt_yoy_pct'),
+    calc('gas_mt',       'gas_mt_yoy_pct'),
   ];
 
-  document.getElementById('energy-kpis').innerHTML = items.map(item => `
-    <div class="ekpi" style="border-top-color:${item.color}">
-      <div class="ekpi-lbl">${item.label}</div>
-      <div class="ekpi-val">${fmtMt(item.val)}</div>
-      <div class="ekpi-yoy ${(item.yoy ?? 0) >= 0 ? 'pos' : 'neg'}">${fmtPct(item.yoy)} vs ${py}</div>
-      <div class="ekpi-sub">Jan–${latest.date}</div>
-    </div>
-  `).join('');
+  new Chart(document.getElementById('c-energy-ytd'), {
+    type: 'bar',
+    data: {
+      labels: ['Coal', 'Crude Oil', 'Gas'],
+      datasets: [{
+        label: `YTD YoY % vs ${py}`,
+        data: vals,
+        backgroundColor: vals.map(v => (v ?? 0) >= 0 ? G + 'bb' : O + 'bb'),
+        borderColor:     vals.map(v => (v ?? 0) >= 0 ? G : O),
+        borderWidth: 1
+      }]
+    },
+    options: {
+      ...BASE_OPTS,
+      plugins: {
+        ...BASE_OPTS.plugins,
+        legend: { display: false },
+        tooltip: { ...TT, callbacks: { label: ctx => ctx.raw !== null ? ` ${ctx.raw.toFixed(1)}%` : 'n/a' } }
+      },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => v.toFixed(0) + '%', { beginAtZero: false })
+      }
+    }
+  });
 }
 
 // ── BLOC YOY ─────────────────────────────────────────────────────

@@ -12,7 +12,7 @@
       --card:   #0e0e0e;
       --border: #1c1c1c;
       --text:   #ffffff;
-      --dim:    #555555;
+      --dim:    #999999;
       --O:  #FF5500;
       --G:  #00FF85;
       --B:  #00B4FF;
@@ -153,8 +153,8 @@
 <!-- VpU -->
 <div class="slabel">Value per Unit</div>
 <div class="cb">
-  <div class="ct">Export & Import · USD per tonne</div>
-  <div class="cs">Trade value / freight weight · GACC</div>
+  <div class="ct">VpU — Value per Unit</div>
+  <div class="cs">Total trade value / freight weight · USD per tonne · GACC</div>
   <div class="wrap"><canvas id="c-vpu"></canvas></div>
   <div class="src">GACC · Freight series: sample data Jun–Aug 2026</div>
 </div>
@@ -168,11 +168,11 @@
   <div class="src">GACC · Sample data only</div>
 </div>
 
-<!-- Partners: diverging stacked bar -->
-<div class="slabel">Trading Partners — Export ↑ · Import ↓ (sample data)</div>
+<!-- Partners: grouped+stacked bar -->
+<div class="slabel">Trading Partners (sample data)</div>
 <div class="cb">
-  <div class="ct">Export & Import by Bloc</div>
-  <div class="cs">Stacked · Mio. USD · GACC · bright = export · muted = import</div>
+  <div class="ct">Total Trade by Bloc</div>
+  <div class="cs">Per bloc: one bar per month · lower = export · upper = import · Mio. USD · GACC</div>
   <div class="wrap"><canvas id="c-div"></canvas></div>
   <div class="src">GACC · Sample data Jun–Aug 2026</div>
 </div>
@@ -228,7 +228,7 @@ const BLOCS = [
 ];
 
 // Chart.js defaults
-Chart.defaults.color = '#444';
+Chart.defaults.color = '#999';
 Chart.defaults.borderColor = '#1c1c1c';
 Chart.defaults.font.family = "system-ui,-apple-system,'Segoe UI',sans-serif";
 Chart.defaults.font.size = 10;
@@ -250,13 +250,13 @@ const BASE_OPTS = {
 function xCfg(opts = {}) {
   return {
     grid: { color: GRID }, border: { color: GRID },
-    ticks: { color: '#444', maxRotation: 0, maxTicksLimit: 14, ...opts }
+    ticks: { color: '#999', maxRotation: 0, maxTicksLimit: 14, ...opts }
   };
 }
 function yCfg(cb, extra = {}) {
   return {
     grid: { color: GRID }, border: { color: GRID },
-    ticks: { color: '#444', callback: cb },
+    ticks: { color: '#999', callback: cb },
     ...extra
   };
 }
@@ -422,32 +422,31 @@ function renderIC(co) {
   });
 }
 
-// ── PARTNERS: DIVERGING STACKED BAR ────────────────────────────
+// ── PARTNERS: GROUPED+STACKED (one bar per bloc per month) ─────
 function renderDiverging(pa) {
-  const expSets = BLOCS.map(b => ({
-    label: b.label,
-    data: pa.map(d => d[`${b.key}_export_mln_usd`] || 0),
-    backgroundColor: b.c + 'cc',
-    borderColor: b.c,
-    borderWidth: 1,
-    stack: 'ex'
-  }));
-
-  const impSets = BLOCS.map(b => ({
-    label: '_' + b.key,  // underscore prefix = hidden from legend
-    data: pa.map(d => -(d[`${b.key}_import_mln_usd`] || 0)),
-    backgroundColor: b.c + '55',
-    borderColor: b.c + '88',
-    borderWidth: 1,
-    stack: 'im'
-  }));
+  // Each bloc = its own stack group → bars side by side per month
+  // Within each bloc: export (bottom, semi-transparent) + import (top, opaque)
+  const datasets = [];
+  BLOCS.forEach(b => {
+    datasets.push({
+      label: '_ex_' + b.key,  // hidden from legend
+      data: pa.map(d => d[`${b.key}_export_mln_usd`] || 0),
+      backgroundColor: b.c + '66',
+      borderWidth: 0,
+      stack: b.key
+    });
+    datasets.push({
+      label: b.label,          // shown in legend
+      data: pa.map(d => d[`${b.key}_import_mln_usd`] || 0),
+      backgroundColor: b.c + 'dd',
+      borderWidth: 0,
+      stack: b.key
+    });
+  });
 
   new Chart(document.getElementById('c-div'), {
     type: 'bar',
-    data: {
-      labels: pa.map(d => d.date),
-      datasets: [...expSets, ...impSets]
-    },
+    data: { labels: pa.map(d => d.date), datasets },
     options: {
       ...BASE_OPTS,
       plugins: {
@@ -462,7 +461,7 @@ function renderDiverging(pa) {
       },
       scales: {
         x: xCfg(),
-        y: yCfg(v => Math.abs(v/1000).toFixed(0)+'k')
+        y: yCfg(v => (v/1000).toFixed(0)+'k')
       }
     }
   });

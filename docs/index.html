@@ -21,7 +21,6 @@
       --PK: #FF0066;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
     body {
       background: var(--bg);
       color: var(--text);
@@ -41,11 +40,7 @@
       justify-content: space-between;
       gap: 1rem;
     }
-    header h1 {
-      font-size: 2rem;
-      font-weight: 900;
-      letter-spacing: -0.04em;
-    }
+    header h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.04em; }
     header h1 em { color: var(--O); font-style: normal; }
     .tagline { font-size: 0.65rem; color: var(--dim); margin-top: 0.3rem; letter-spacing: 0.12em; text-transform: uppercase; }
     .hdr { text-align: right; }
@@ -53,27 +48,21 @@
     .hdr-updated { font-size: 0.62rem; color: var(--dim); margin-top: 0.2rem; }
 
     .slabel {
-      font-size: 0.58rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--dim);
-      margin: 2.5rem 0 0.8rem;
-      padding-left: 0.55rem;
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--dim);
+      margin: 2.5rem 0 0.8rem; padding-left: 0.55rem;
       border-left: 2px solid var(--O);
     }
 
     .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
     .kpi {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-top: 3px solid var(--O);
-      padding: 1.3rem 1.5rem 1.2rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-top: 3px solid var(--O); padding: 1.3rem 1.5rem 1.2rem;
     }
     .kpi.g { border-top-color: var(--G); }
     .kpi.b { border-top-color: var(--B); }
     .kpi-lbl { font-size: 0.62rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.6rem; }
-    .kpi-val { font-size: 3rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; color: var(--text); }
+    .kpi-val { font-size: 3rem; font-weight: 900; line-height: 1; letter-spacing: -0.04em; }
     .kpi-val.pos { color: var(--G); }
     .kpi-val.neg { color: var(--O); }
     .kpi-sub { font-size: 0.68rem; color: var(--dim); margin-top: 0.5rem; }
@@ -81,24 +70,22 @@
     .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
 
-    .cb {
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 1.2rem 1.2rem 0.9rem;
-    }
+    .cb { background: var(--card); border: 1px solid var(--border); padding: 1.2rem 1.2rem 0.9rem; }
     .ct  { font-size: 0.8rem; font-weight: 700; color: var(--text); }
     .cs  { font-size: 0.65rem; color: var(--dim); margin: 0.15rem 0 0.85rem; }
     .src { font-size: 0.58rem; color: var(--dim); margin-top: 0.5rem; text-align: right; }
-    canvas { display: block; width: 100% !important; }
+
+    /* Fixed-height chart wrappers — Chart.js needs position:relative + maintainAspectRatio:false */
+    .wrap      { position: relative; height: 300px; }
+    .wrap-sm   { position: relative; height: 240px; }
+    .wrap-donut{ position: relative; height: 200px; }
+
+    canvas { display: block; }
 
     footer {
-      margin-top: 3.5rem;
-      padding-top: 1.2rem;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.62rem;
-      color: var(--dim);
+      margin-top: 3.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between;
+      font-size: 0.62rem; color: var(--dim);
     }
     footer a { color: var(--dim); text-decoration: none; }
     footer a:hover { color: var(--O); }
@@ -117,6 +104,7 @@
   </div>
 </header>
 
+<!-- YTD KPIs -->
 <div class="slabel">YTD Performance</div>
 <div class="kpi-row">
   <div class="kpi">
@@ -136,66 +124,78 @@
   </div>
 </div>
 
+<!-- Trade Flows -->
 <div class="slabel">Trade Flows</div>
 <div class="cb">
   <div class="ct">Export · Import · Balance</div>
   <div class="cs">Monthly · Mio. USD · GACC</div>
-  <canvas id="c-flows" height="80"></canvas>
+  <div class="wrap"><canvas id="c-flows"></canvas></div>
   <div class="src">GACC via DoiEnnoson/TradeBalanceTracker</div>
 </div>
 
+<!-- YoY -->
 <div class="slabel">Year-on-Year Growth</div>
 <div class="g2">
   <div class="cb">
     <div class="ct">Export YoY %</div>
     <div class="cs">Same month, prior year · GACC</div>
-    <canvas id="c-yoy-ex" height="150"></canvas>
+    <div class="wrap-sm"><canvas id="c-yoy-ex"></canvas></div>
     <div class="src">GACC</div>
   </div>
   <div class="cb">
     <div class="ct">Import YoY %</div>
     <div class="cs">Same month, prior year · GACC</div>
-    <canvas id="c-yoy-im" height="150"></canvas>
+    <div class="wrap-sm"><canvas id="c-yoy-im"></canvas></div>
     <div class="src">GACC</div>
   </div>
 </div>
 
+<!-- VpU -->
 <div class="slabel">Value per Unit</div>
 <div class="cb">
   <div class="ct">Export & Import · USD per tonne</div>
-  <div class="cs">Trade value divided by freight weight · GACC</div>
-  <canvas id="c-vpu" height="75"></canvas>
-  <div class="src">GACC · Freight series: sample data Jun–Aug 2026 only</div>
+  <div class="cs">Trade value / freight weight · GACC</div>
+  <div class="wrap"><canvas id="c-vpu"></canvas></div>
+  <div class="src">GACC · Freight series: sample data Jun–Aug 2026</div>
 </div>
 
+<!-- IC -->
 <div class="slabel">Semiconductors</div>
 <div class="cb">
   <div class="ct">Integrated Circuits — Export & Import</div>
-  <div class="cs">Monthly · Mio. USD · GACC · (sample data: Jun–Aug 2026)</div>
-  <canvas id="c-ic" height="75"></canvas>
+  <div class="cs">Monthly · Mio. USD · stacked · GACC (sample data: Jun–Aug 2026)</div>
+  <div class="wrap"><canvas id="c-ic"></canvas></div>
   <div class="src">GACC · Sample data only</div>
 </div>
 
-<div class="slabel">Trading Partners — Proposals (sample data · Jun–Aug 2026)</div>
-<div class="g2">
-  <div class="cb">
-    <div class="ct">Export Flows by Bloc</div>
-    <div class="cs">Absolute · Mio. USD · GACC</div>
-    <canvas id="c-pf" height="170"></canvas>
-    <div class="src">GACC · Sample data</div>
-  </div>
-  <div class="cb">
-    <div class="ct">Export Share by Bloc</div>
-    <div class="cs">% of total exports · GACC</div>
-    <canvas id="c-ps" height="170"></canvas>
-    <div class="src">GACC · Sample data</div>
-  </div>
+<!-- Partners: diverging stacked bar -->
+<div class="slabel">Trading Partners — Export ↑ · Import ↓ (sample data)</div>
+<div class="cb">
+  <div class="ct">Export & Import by Bloc</div>
+  <div class="cs">Stacked · Mio. USD · GACC · bright = export · muted = import</div>
+  <div class="wrap"><canvas id="c-div"></canvas></div>
+  <div class="src">GACC · Sample data Jun–Aug 2026</div>
 </div>
-<div style="margin-top:1rem">
+
+<!-- 3 Donuts -->
+<div class="slabel">Share by Bloc — Latest Month</div>
+<div class="g3">
   <div class="cb">
-    <div class="ct">Export vs. Import by Bloc — Latest Month</div>
-    <div class="cs">Mio. USD · GACC</div>
-    <canvas id="c-pb" height="55"></canvas>
+    <div class="ct">Total Trade</div>
+    <div class="cs">% of total trade by bloc</div>
+    <div class="wrap-donut"><canvas id="c-d-total"></canvas></div>
+    <div class="src">GACC · Sample data</div>
+  </div>
+  <div class="cb">
+    <div class="ct">Exports</div>
+    <div class="cs">% of total exports by bloc</div>
+    <div class="wrap-donut"><canvas id="c-d-ex"></canvas></div>
+    <div class="src">GACC · Sample data</div>
+  </div>
+  <div class="cb">
+    <div class="ct">Imports</div>
+    <div class="cs">% of total imports by bloc</div>
+    <div class="wrap-donut"><canvas id="c-d-im"></canvas></div>
     <div class="src">GACC · Sample data</div>
   </div>
 </div>
@@ -207,6 +207,8 @@
 
 <script>
 const BASE = 'https://raw.githubusercontent.com/DoiEnnoson/TradeBalanceTracker/main/data/';
+
+// Palette
 const O  = '#FF5500';
 const G  = '#00FF85';
 const B  = '#00B4FF';
@@ -214,27 +216,52 @@ const Y  = '#FFE500';
 const P  = '#CC00FF';
 const PK = '#FF0066';
 const W  = '#ffffff';
-const mu = c => c + '30'; // ~19% alpha fill
+const DIM = '#333333';
 
+// Bloc definitions
+const BLOCS = [
+  { key: 'eu',     label: 'EU',      c: B  },
+  { key: 'usa',    label: 'USA',     c: O  },
+  { key: 'asean',  label: 'ASEAN',   c: Y  },
+  { key: 'russia', label: 'Russia',  c: P  },
+  { key: 'brics4', label: 'BRICS-4', c: PK },
+];
+
+// Chart.js defaults
 Chart.defaults.color = '#444';
 Chart.defaults.borderColor = '#1c1c1c';
-Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', sans-serif";
+Chart.defaults.font.family = "system-ui,-apple-system,'Segoe UI',sans-serif";
 Chart.defaults.font.size = 10;
 
 const GRID = '#1c1c1c';
 const TT = {
   backgroundColor: '#111', titleColor: '#888', bodyColor: '#ddd',
-  borderColor: '#2a2a2a', borderWidth: 1, padding: 10, cornerRadius: 2
+  borderColor: '#2a2a2a', borderWidth: 1, padding: 10, cornerRadius: 2,
+  mode: 'index', intersect: false
 };
 
-function xAxis(opts = {}) {
-  return { grid: { color: GRID }, ticks: { color: '#444', maxRotation: 0, maxTicksLimit: 14, ...opts.ticks }, border: { color: GRID } };
+const BASE_OPTS = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+  plugins: { tooltip: TT }
+};
+
+function xCfg(opts = {}) {
+  return {
+    grid: { color: GRID }, border: { color: GRID },
+    ticks: { color: '#444', maxRotation: 0, maxTicksLimit: 14, ...opts }
+  };
 }
-function yAxis(fmt) {
-  return { grid: { color: GRID }, ticks: { color: '#444', callback: fmt }, border: { color: GRID } };
+function yCfg(cb, extra = {}) {
+  return {
+    grid: { color: GRID }, border: { color: GRID },
+    ticks: { color: '#444', callback: cb },
+    ...extra
+  };
 }
 
-async function csv(name) {
+async function fetchCSV(name) {
   return new Promise((res, rej) => {
     Papa.parse(BASE + name, {
       download: true, header: true, dynamicTyping: true,
@@ -244,18 +271,18 @@ async function csv(name) {
   });
 }
 
-// ── YTD ──────────────────────────────────────────────────────────
+// ── YTD KPIs ────────────────────────────────────────────────────
 function renderYTD(m) {
   const sorted = [...m].sort((a, b) => a.date.localeCompare(b.date));
   const latest = sorted[sorted.length - 1].date;
   const [ly, lmo] = latest.split('-').map(Number);
   const py = ly - 1;
 
-  const ytd = yr => m
-    .filter(d => { const [y, mo] = d.date.split('-').map(Number); return y === yr && mo <= lmo; })
-    .reduce((a, d) => ({ ex: a.ex + (d.export_mln_usd||0), im: a.im + (d.import_mln_usd||0), tot: a.tot + (d.total_mln_usd||0) }), { ex:0, im:0, tot:0 });
+  const sum = yr => m
+    .filter(d => { const [y,mo] = d.date.split('-').map(Number); return y === yr && mo <= lmo; })
+    .reduce((a, d) => ({ ex: a.ex+(d.export_mln_usd||0), im: a.im+(d.import_mln_usd||0), tot: a.tot+(d.total_mln_usd||0) }), { ex:0, im:0, tot:0 });
 
-  const cur = ytd(ly), prev = ytd(py);
+  const cur = sum(ly), prev = sum(py);
   const pct = (c, p) => p > 0 ? ((c/p)-1)*100 : null;
   const fmt = v => v === null ? 'n/a' : (v >= 0 ? '+' : '') + v.toFixed(1) + '%';
 
@@ -272,28 +299,30 @@ function renderYTD(m) {
   });
 }
 
-// ── TRADE FLOWS ───────────────────────────────────────────────────
+// ── TRADE FLOWS ─────────────────────────────────────────────────
 function renderFlows(m) {
   new Chart(document.getElementById('c-flows'), {
     type: 'line',
     data: {
       labels: m.map(d => d.date),
       datasets: [
-        { label: 'Export',  data: m.map(d => d.export_mln_usd),  borderColor: G, backgroundColor: mu(G), borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false },
-        { label: 'Import',  data: m.map(d => d.import_mln_usd),  borderColor: O, backgroundColor: mu(O), borderWidth: 1.5, pointRadius: 0, tension: 0.3, fill: false },
-        { label: 'Balance', data: m.map(d => d.balance_mln_usd), borderColor: W, backgroundColor: 'transparent', borderWidth: 1, pointRadius: 0, tension: 0.3, fill: false, borderDash: [4,3] }
+        { label:'Export',  data: m.map(d => d.export_mln_usd),  borderColor:G, backgroundColor:'transparent', borderWidth:1.5, pointRadius:0, tension:0.3 },
+        { label:'Import',  data: m.map(d => d.import_mln_usd),  borderColor:O, backgroundColor:'transparent', borderWidth:1.5, pointRadius:0, tension:0.3 },
+        { label:'Balance', data: m.map(d => d.balance_mln_usd), borderColor:W, backgroundColor:'transparent', borderWidth:1,   pointRadius:0, tension:0.3, borderDash:[4,3] }
       ]
     },
     options: {
-      responsive: true,
-      interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } }, tooltip: TT },
-      scales: { x: xAxis(), y: yAxis(v => (v/1000).toFixed(0)+'k') }
+      ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins, legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } } },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => (v/1000).toFixed(0)+'k')
+      }
     }
   });
 }
 
-// ── YOY ────────────────────────────────────────────────────────────
+// ── YOY ─────────────────────────────────────────────────────────
 function calcYoY(m, field) {
   const map = Object.fromEntries(m.map(d => [d.date, d[field]]));
   return m.map(d => {
@@ -304,30 +333,45 @@ function calcYoY(m, field) {
 }
 
 function renderYoY(m) {
-  const mkBar = (id, data) => new Chart(document.getElementById(id), {
-    type: 'bar',
-    data: {
-      labels: m.map(d => d.date),
-      datasets: [{ label: 'YoY %', data,
-        backgroundColor: data.map(v => v === null ? 'transparent' : (v >= 0 ? G+'aa' : O+'aa')),
-        borderColor:      data.map(v => v === null ? 'transparent' : (v >= 0 ? G : O)),
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { display: false },
-        tooltip: { ...TT, callbacks: { label: ctx => ctx.raw !== null ? ctx.raw.toFixed(1)+'%' : 'n/a' } }
+  const labels = m.map(d => d.date);
+
+  const mkBar = (id, data) => {
+    // trim leading nulls
+    const first = data.findIndex(v => v !== null);
+    const trimData   = first < 0 ? data   : data.slice(first);
+    const trimLabels = first < 0 ? labels : labels.slice(first);
+
+    new Chart(document.getElementById(id), {
+      type: 'bar',
+      data: {
+        labels: trimLabels,
+        datasets: [{
+          label: 'YoY %', data: trimData,
+          backgroundColor: trimData.map(v => v === null ? 'transparent' : (v >= 0 ? G+'aa' : O+'aa')),
+          borderColor:     trimData.map(v => v === null ? 'transparent' : (v >= 0 ? G : O)),
+          borderWidth: 1
+        }]
       },
-      scales: { x: xAxis(), y: yAxis(v => v.toFixed(0)+'%') }
-    }
-  });
+      options: {
+        ...BASE_OPTS,
+        plugins: {
+          ...BASE_OPTS.plugins,
+          legend: { display: false },
+          tooltip: { ...TT, callbacks: { label: ctx => ctx.raw !== null ? ctx.raw.toFixed(1)+'%' : 'n/a' } }
+        },
+        scales: {
+          x: xCfg(),
+          y: yCfg(v => v.toFixed(0)+'%')
+        }
+      }
+    });
+  };
+
   mkBar('c-yoy-ex', calcYoY(m, 'export_mln_usd'));
   mkBar('c-yoy-im', calcYoY(m, 'import_mln_usd'));
 }
 
-// ── VPU ────────────────────────────────────────────────────────────
+// ── VPU ─────────────────────────────────────────────────────────
 function renderVpU(m, fr) {
   const fm = Object.fromEntries(fr.map(d => [d.date, d]));
   const j  = m.filter(d => fm[d.date]).map(d => ({
@@ -335,132 +379,162 @@ function renderVpU(m, fr) {
     ex: fm[d.date].export_mln_t > 0 ? d.export_mln_usd / fm[d.date].export_mln_t : null,
     im: fm[d.date].import_mln_t > 0 ? d.import_mln_usd / fm[d.date].import_mln_t : null
   }));
+
   new Chart(document.getElementById('c-vpu'), {
     type: 'line',
     data: {
       labels: j.map(d => d.date),
       datasets: [
-        { label: 'Export VpU', data: j.map(d => d.ex), borderColor: G, backgroundColor:'transparent', borderWidth:2, pointRadius:5, pointBackgroundColor:G, tension:0.3 },
-        { label: 'Import VpU', data: j.map(d => d.im), borderColor: O, backgroundColor:'transparent', borderWidth:2, pointRadius:5, pointBackgroundColor:O, tension:0.3 }
+        { label:'Export VpU', data: j.map(d => d.ex), borderColor:G, backgroundColor:'transparent', borderWidth:2, pointRadius:6, pointBackgroundColor:G, tension:0.3 },
+        { label:'Import VpU', data: j.map(d => d.im), borderColor:O, backgroundColor:'transparent', borderWidth:2, pointRadius:6, pointBackgroundColor:O, tension:0.3 }
       ]
     },
     options: {
-      responsive: true,
-      interaction: { mode:'index', intersect:false },
-      plugins: { legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } }, tooltip: TT },
-      scales: { x: xAxis(), y: yAxis(v => v.toFixed(0)+' $/t') }
+      ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins, legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } } },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => v.toFixed(0)+' $/t', { beginAtZero: false })
+      }
     }
   });
 }
 
-// ── IC ─────────────────────────────────────────────────────────────
+// ── IC — STACKED BAR ────────────────────────────────────────────
 function renderIC(co) {
   new Chart(document.getElementById('c-ic'), {
-    type: 'line',
+    type: 'bar',
     data: {
       labels: co.map(d => d.date),
       datasets: [
-        { label: 'IC Export', data: co.map(d => d.ic_export_mln_usd), borderColor: G, backgroundColor: mu(G), borderWidth:2, pointRadius:5, pointBackgroundColor:G, tension:0.3, fill:false },
-        { label: 'IC Import', data: co.map(d => d.ic_import_mln_usd), borderColor: O, backgroundColor: mu(O), borderWidth:2, pointRadius:5, pointBackgroundColor:O, tension:0.3, fill:false }
+        { label:'IC Export', data: co.map(d => d.ic_export_mln_usd), backgroundColor: G+'cc', borderColor: G, borderWidth:1, stack:'ic' },
+        { label:'IC Import', data: co.map(d => d.ic_import_mln_usd), backgroundColor: O+'cc', borderColor: O, borderWidth:1, stack:'ic' }
       ]
     },
     options: {
-      responsive: true,
-      interaction: { mode:'index', intersect:false },
-      plugins: { legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } }, tooltip: TT },
-      scales: { x: xAxis(), y: yAxis(v => (v/1000).toFixed(0)+'k') }
+      ...BASE_OPTS,
+      plugins: { ...BASE_OPTS.plugins, legend: { position:'top', align:'end', labels:{ boxWidth:10, padding:14 } } },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => (v/1000).toFixed(0)+'k', { stacked: true })
+      }
     }
   });
 }
 
-// ── PARTNERS ───────────────────────────────────────────────────────
-const BLOCS = [
-  { key:'eu',     label:'EU',      c: B  },
-  { key:'usa',    label:'USA',     c: O  },
-  { key:'asean',  label:'ASEAN',   c: Y  },
-  { key:'russia', label:'Russia',  c: P  },
-  { key:'brics4', label:'BRICS-4', c: PK }
-];
+// ── PARTNERS: DIVERGING STACKED BAR ────────────────────────────
+function renderDiverging(pa) {
+  const expSets = BLOCS.map(b => ({
+    label: b.label,
+    data: pa.map(d => d[`${b.key}_export_mln_usd`] || 0),
+    backgroundColor: b.c + 'cc',
+    borderColor: b.c,
+    borderWidth: 1,
+    stack: 'ex'
+  }));
 
-function renderPartnerFlows(pa) {
-  new Chart(document.getElementById('c-pf'), {
-    type: 'line',
-    data: {
-      labels: pa.map(d => d.date),
-      datasets: BLOCS.map(b => ({
-        label: b.label,
-        data: pa.map(d => d[`${b.key}_export_mln_usd`]),
-        borderColor: b.c, backgroundColor:'transparent', borderWidth:1.5,
-        pointRadius:3, pointBackgroundColor:b.c, tension:0.3
-      }))
-    },
-    options: {
-      responsive: true,
-      interaction: { mode:'index', intersect:false },
-      plugins: { legend:{ position:'top', align:'end', labels:{ boxWidth:8, padding:10 } }, tooltip: TT },
-      scales: { x: xAxis(), y: yAxis(v => (v/1000).toFixed(0)+'k') }
-    }
-  });
-}
+  const impSets = BLOCS.map(b => ({
+    label: '_' + b.key,  // underscore prefix = hidden from legend
+    data: pa.map(d => -(d[`${b.key}_import_mln_usd`] || 0)),
+    backgroundColor: b.c + '55',
+    borderColor: b.c + '88',
+    borderWidth: 1,
+    stack: 'im'
+  }));
 
-function renderPartnerShares(pa) {
-  new Chart(document.getElementById('c-ps'), {
-    type: 'line',
-    data: {
-      labels: pa.map(d => d.date),
-      datasets: BLOCS.map(b => ({
-        label: b.label,
-        data: pa.map(d => d[`${b.key}_export_share_pct`]),
-        borderColor: b.c, backgroundColor:'transparent', borderWidth:1.5,
-        pointRadius:3, pointBackgroundColor:b.c, tension:0.3
-      }))
-    },
-    options: {
-      responsive: true,
-      interaction: { mode:'index', intersect:false },
-      plugins: { legend:{ position:'top', align:'end', labels:{ boxWidth:8, padding:10 } }, tooltip: TT },
-      scales: { x: xAxis(), y: yAxis(v => v.toFixed(1)+'%') }
-    }
-  });
-}
-
-function renderPartnerBar(pa) {
-  const last = pa[pa.length - 1];
-  if (!last) return;
-  new Chart(document.getElementById('c-pb'), {
+  new Chart(document.getElementById('c-div'), {
     type: 'bar',
     data: {
-      labels: BLOCS.map(b => b.label),
-      datasets: [
-        { label:'Export', data: BLOCS.map(b => last[`${b.key}_export_mln_usd`]||0), backgroundColor: G+'bb', borderColor: G, borderWidth:1 },
-        { label:'Import', data: BLOCS.map(b => last[`${b.key}_import_mln_usd`]||0), backgroundColor: O+'bb', borderColor: O, borderWidth:1 }
-      ]
+      labels: pa.map(d => d.date),
+      datasets: [...expSets, ...impSets]
     },
     options: {
-      indexAxis: 'y',
-      responsive: true,
-      interaction: { mode:'index', intersect:false },
-      plugins: { legend:{ position:'top', align:'end', labels:{ boxWidth:10, padding:14 } }, tooltip: TT },
-      scales: { x: yAxis(v => (v/1000).toFixed(0)+'k'), y: xAxis() }
+      ...BASE_OPTS,
+      plugins: {
+        ...BASE_OPTS.plugins,
+        legend: {
+          position: 'top', align: 'end',
+          labels: {
+            boxWidth: 10, padding: 14,
+            filter: item => !item.text.startsWith('_')
+          }
+        }
+      },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => Math.abs(v/1000).toFixed(0)+'k')
+      }
     }
   });
 }
 
-// ── INIT ───────────────────────────────────────────────────────────
+// ── 3 DONUTS ────────────────────────────────────────────────────
+function renderDonuts(pa, m) {
+  const last   = pa[pa.length - 1];
+  const lastM  = m.filter(d => d.date === last.date)[0];
+  if (!last || !lastM) return;
+
+  const totEx = lastM.export_mln_usd || 1;
+  const totIm = lastM.import_mln_usd || 1;
+  const totTr = lastM.total_mln_usd  || 1;
+
+  const colors = [...BLOCS.map(b => b.c), DIM];
+  const labels = [...BLOCS.map(b => b.label), 'Other'];
+
+  const donut = (id, values, total) => {
+    const rest = Math.max(0, total - values.reduce((a,v) => a+v, 0));
+    new Chart(document.getElementById(id), {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{ data: [...values, rest], backgroundColor: colors, borderColor: '#050505', borderWidth: 2, hoverOffset: 8 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '62%',
+        plugins: {
+          legend: { position:'bottom', labels:{ boxWidth:8, padding:10, font:{ size:10 } } },
+          tooltip: {
+            ...TT,
+            callbacks: {
+              label: ctx => {
+                const pct = ((ctx.raw / total) * 100).toFixed(1);
+                return ` ${ctx.label}: ${pct}%`;
+              }
+            }
+          }
+        }
+      }
+    });
+  };
+
+  // Total trade share: use (ex + im) per bloc / total trade
+  const totVals = BLOCS.map(b =>
+    (last[`${b.key}_export_mln_usd`] || 0) + (last[`${b.key}_import_mln_usd`] || 0)
+  );
+  const exVals = BLOCS.map(b => last[`${b.key}_export_mln_usd`] || 0);
+  const imVals = BLOCS.map(b => last[`${b.key}_import_mln_usd`] || 0);
+
+  donut('c-d-total', totVals, totTr);
+  donut('c-d-ex',    exVals,  totEx);
+  donut('c-d-im',    imVals,  totIm);
+}
+
+// ── INIT ────────────────────────────────────────────────────────
 Promise.all([
-  csv('china_trade_monthly.csv'),
-  csv('china_trade_freight.csv'),
-  csv('china_trade_commodities.csv'),
-  csv('china_trade_partners.csv')
+  fetchCSV('china_trade_monthly.csv'),
+  fetchCSV('china_trade_freight.csv'),
+  fetchCSV('china_trade_commodities.csv'),
+  fetchCSV('china_trade_partners.csv')
 ]).then(([m, fr, co, pa]) => {
   renderYTD(m);
   renderFlows(m);
   renderYoY(m);
   renderVpU(m, fr);
   renderIC(co);
-  renderPartnerFlows(pa);
-  renderPartnerShares(pa);
-  renderPartnerBar(pa);
+  renderDiverging(pa);
+  renderDonuts(pa, m);
 }).catch(err => {
   console.error(err);
   document.body.insertAdjacentHTML('afterbegin',

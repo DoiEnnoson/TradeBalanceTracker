@@ -229,6 +229,7 @@ const R  = '#E9171C';   // red         — USA
 const Y  = '#E6AF00';   // golden      — ASEAN
 const P  = '#632618';   // dark brown  — Russia
 const LB = '#7A92DF';   // periwinkle  — BRICS-4
+const DG = '#00AA55';   // dark green  — import positive YoY
 
 // Bloc definitions
 const BLOCS = [
@@ -555,8 +556,8 @@ function renderBlocYoY(pa) {
         {
           label: 'Import YoY %',
           data: imYoY,
-          backgroundColor: imYoY.map(v => (v ?? 0) >= 0 ? G + '55' : O + '55'),
-          borderColor:      imYoY.map(v => (v ?? 0) >= 0 ? G : O),
+          backgroundColor: imYoY.map(v => (v ?? 0) >= 0 ? DG + 'bb' : O + 'bb'),
+          borderColor:      imYoY.map(v => (v ?? 0) >= 0 ? DG : O),
           borderWidth: 1
         }
       ]
@@ -565,7 +566,16 @@ function renderBlocYoY(pa) {
       ...BASE_OPTS,
       plugins: {
         ...BASE_OPTS.plugins,
-        legend: { position: 'top', align: 'end', labels: { boxWidth: 10, padding: 14 } },
+        legend: {
+          position: 'top', align: 'end',
+          labels: {
+            boxWidth: 10, padding: 14,
+            generateLabels: () => [
+              { text: 'Export YoY %', fillStyle: G  + 'bb', strokeStyle: G,  lineWidth: 1, datasetIndex: 0 },
+              { text: 'Import YoY %', fillStyle: DG + 'bb', strokeStyle: DG, lineWidth: 1, datasetIndex: 1 }
+            ]
+          }
+        },
         tooltip: { ...TT, callbacks: { label: ctx => ctx.raw !== null ? ctx.raw.toFixed(1) + '%' : 'n/a' } }
       },
       scales: {

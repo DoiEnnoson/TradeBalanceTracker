@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>China Trade Tracker</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#2E5A57">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <style>
@@ -41,6 +47,8 @@
       justify-content: space-between;
       gap: 1rem;
     }
+    .hdr-left { display: flex; align-items: center; gap: 1rem; }
+    .logo { width: 52px; height: 52px; border-radius: 8px; flex-shrink: 0; }
     header h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.04em; }
     header h1 em { color: var(--O); font-style: normal; }
     .tagline { font-size: 0.65rem; color: var(--dim); margin-top: 0.3rem; letter-spacing: 0.12em; text-transform: uppercase; }
@@ -100,9 +108,12 @@
 <body>
 
 <header>
-  <div>
-    <h1>China <em>Trade</em> Tracker</h1>
-    <div class="tagline">GACC · Monthly customs data · DoiEnnoson</div>
+  <div class="hdr-left">
+    <img src="android-chrome-192x192.png" class="logo" alt="CTT">
+    <div>
+      <h1>China <em>Trade</em> Tracker</h1>
+      <div class="tagline">GACC · Monthly customs data · DoiEnnoson</div>
+    </div>
   </div>
   <div class="hdr">
     <div class="hdr-period" id="hd-period">—</div>

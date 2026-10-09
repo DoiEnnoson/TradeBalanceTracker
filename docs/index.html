@@ -200,6 +200,15 @@
   </div>
 </div>
 
+<!-- Bloc YoY -->
+<div class="slabel">Partner YoY Growth — Latest Month</div>
+<div class="cb">
+  <div class="ct">Export & Import YoY % by Bloc</div>
+  <div class="cs">Solid = export · outline = import · GACC</div>
+  <div class="wrap-sm"><canvas id="c-bloc-yoy"></canvas></div>
+  <div class="src">GACC · Sample data</div>
+</div>
+
 <footer>
   <span>Data: <a href="https://github.com/DoiEnnoson/TradeBalanceTracker" target="_blank">DoiEnnoson/TradeBalanceTracker</a> · Source: GACC · Updated monthly</span>
   <span>By <a href="https://chinabusinessspotlight.substack.com" target="_blank">Dói Ennoson</a></span>
@@ -520,6 +529,50 @@ function renderDonuts(pa, m) {
   donut('c-d-im',    imVals,  totIm);
 }
 
+// ── BLOC YOY ─────────────────────────────────────────────────────
+function renderBlocYoY(pa) {
+  const last = pa[pa.length - 1];
+  if (!last) return;
+
+  const exYoY = BLOCS.map(b => last[`${b.key}_export_yoy_pct`] ?? null);
+  const imYoY = BLOCS.map(b => last[`${b.key}_import_yoy_pct`] ?? null);
+
+  new Chart(document.getElementById('c-bloc-yoy'), {
+    type: 'bar',
+    data: {
+      labels: BLOCS.map(b => b.label),
+      datasets: [
+        {
+          label: 'Export YoY %',
+          data: exYoY,
+          backgroundColor: exYoY.map(v => (v ?? 0) >= 0 ? G + 'bb' : O + 'bb'),
+          borderColor:      exYoY.map(v => (v ?? 0) >= 0 ? G : O),
+          borderWidth: 1
+        },
+        {
+          label: 'Import YoY %',
+          data: imYoY,
+          backgroundColor: imYoY.map(v => (v ?? 0) >= 0 ? G + '55' : O + '55'),
+          borderColor:      imYoY.map(v => (v ?? 0) >= 0 ? G : O),
+          borderWidth: 1
+        }
+      ]
+    },
+    options: {
+      ...BASE_OPTS,
+      plugins: {
+        ...BASE_OPTS.plugins,
+        legend: { position: 'top', align: 'end', labels: { boxWidth: 10, padding: 14 } },
+        tooltip: { ...TT, callbacks: { label: ctx => ctx.raw !== null ? ctx.raw.toFixed(1) + '%' : 'n/a' } }
+      },
+      scales: {
+        x: xCfg(),
+        y: yCfg(v => v.toFixed(0) + '%')
+      }
+    }
+  });
+}
+
 // ── INIT ────────────────────────────────────────────────────────
 Promise.all([
   fetchCSV('china_trade_monthly.csv'),
@@ -534,6 +587,7 @@ Promise.all([
   renderIC(co);
   renderDiverging(pa);
   renderDonuts(pa, m);
+  renderBlocYoY(pa);
 }).catch(err => {
   console.error(err);
   document.body.insertAdjacentHTML('afterbegin',

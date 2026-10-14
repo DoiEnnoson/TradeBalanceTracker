@@ -524,10 +524,14 @@ function renderDiverging(pa) {
 }
 
 // ── 3 DONUTS ────────────────────────────────────────────────────
-function renderDonuts(pa, m) {
-  const last   = pa[pa.length - 1];
-  const lastM  = m.filter(d => d.date === last.date)[0];
-  if (!last || !lastM) return;
+// Monatssumme: primär API-Schicht (china_trade_monthly.csv), sonst
+// GACC-Handelsbilanz-Fallback (china_trade_monthly_manual.csv), sonst leer.
+function renderDonuts(pa, m, mm) {
+  const last = pa[pa.length - 1];
+  if (!last) return;
+  let lastM = m.filter(d => d.date === last.date)[0];
+  if (!lastM && mm) lastM = mm.filter(d => d.date === last.date)[0];
+  if (!lastM) return;
 
   const totEx = lastM.export_mln_usd || 1;
   const totIm = lastM.import_mln_usd || 1;
@@ -771,6 +775,7 @@ function renderBlocYoY(pa) {
 // ── INIT ────────────────────────────────────────────────────────
 Promise.all([
   fetchCSV('china_trade_monthly.csv'),
+  fetchCSV('china_trade_monthly_manual.csv'),
   fetchCSV('china_trade_freight.csv'),
   fetchCSV('china_trade_commodities.csv'),
   fetchCSV('china_trade_partners.csv'),
@@ -779,7 +784,7 @@ Promise.all([
     complete: r => res(r.data.filter(d => d.period)),
     error: rej
   }))
-]).then(([m, fr, co, pa, en]) => {
+]).then(([m, mm, fr, co, pa, en]) => {
   const energy = parseEnergy(en);
   renderYTD(m);
   renderFlows(m);
@@ -790,7 +795,7 @@ Promise.all([
   renderEnergyYoY(energy);
   renderEnergyYTD(energy);
   renderDiverging(pa);
-  renderDonuts(pa, m);
+  renderDonuts(pa, m, mm);
   renderBlocYoY(pa);
 }).catch(err => {
 

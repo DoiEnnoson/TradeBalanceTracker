@@ -253,6 +253,15 @@
   </div>
 </div>
 
+<!-- High-Tech Share -->
+<div class="slabel">High-Tech Share of Trade</div>
+<div class="cb">
+  <div class="ct">High-Tech Products as Share of Monthly Trade</div>
+  <div class="cs">High-tech products (incl. semiconductors) · % of monthly exports and imports · GACC</div>
+  <div class="wrap"><canvas id="c-hightech-share"></canvas></div>
+  <div class="src">GACC · high-tech aggregate includes integrated circuits</div>
+</div>
+
 <footer>
   <span>Source: GACC · Updated monthly</span>
   <span>By <a href="mailto:doisnews@gmail.com">Dói Ennoson</a></span>
@@ -780,6 +789,33 @@ function renderBlocYoY(pa) {
   });
 }
 
+// ── HIGH-TECH SHARE ──────────────────────────────────────────────
+function renderHighTechShare(hts) {
+  if (!hts || !hts.length) return;
+  const labels = hts.map(d => d.date);
+  const mkLine = (field, label, color) => ({
+    label, data: hts.map(d => d[field] ?? null),
+    borderColor: color, backgroundColor: 'transparent',
+    borderWidth: 2, pointRadius: 0, tension: 0.3, spanGaps: true
+  });
+  new Chart(document.getElementById('c-hightech-share'), {
+    type: 'line',
+    data: { labels, datasets: [
+      mkLine('hightech_exp_share_pct', 'Export share', G),
+      mkLine('hightech_imp_share_pct', 'Import share', O),
+    ]},
+    options: {
+      ...BASE_OPTS,
+      plugins: {
+        ...BASE_OPTS.plugins,
+        legend: { position: 'top', align: 'end', labels: { boxWidth: 10, padding: 14 } },
+        tooltip: { ...TT, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw != null ? ctx.raw.toFixed(1) : 'n/a'}%` } }
+      },
+      scales: { x: xCfg(), y: yCfg(v => v.toFixed(0) + '%') }
+    }
+  });
+}
+
 // ── INIT ────────────────────────────────────────────────────────
 Promise.all([
   fetchCSV('china_trade_monthly.csv'),
@@ -787,6 +823,7 @@ Promise.all([
   fetchCSV('china_trade_freight.csv'),
   fetchCSV('china_trade_commodities.csv'),
   fetchCSV('china_trade_partners.csv'),
+  fetchCSV('hightech_share.csv'),
   new Promise((res, rej) => Papa.parse(CEM_BASE + 'gacc_imports.csv', {
     download: true, header: true, dynamicTyping: true,
     complete: r => res(r.data.filter(d => d.period)),
@@ -797,7 +834,7 @@ Promise.all([
     complete: r => res(r.data.filter(d => d.period)),
     error: () => res([])
   }))
-]).then(([m, mm, fr, co, pa, en, enM]) => {
+]).then(([m, mm, fr, co, pa, hts, en, enM]) => {
   // Energie: CEM-Pipeline primär, GACC-Handelsbilanz-Fallback fuer Monate,
   // die die Pipeline noch nicht erzeugt hat.
   const energy = mergeMonthly(parseEnergy(en), parseEnergy(enM));
@@ -815,6 +852,7 @@ Promise.all([
   renderDiverging(pa);
   renderDonuts(pa, mAll);
   renderBlocYoY(pa);
+  renderHighTechShare(hts);
 }).catch(err => {
 
   console.error(err);

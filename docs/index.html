@@ -791,9 +791,16 @@ Promise.all([
     download: true, header: true, dynamicTyping: true,
     complete: r => res(r.data.filter(d => d.period)),
     error: rej
+  })),
+  new Promise(res => Papa.parse(CEM_BASE + 'gacc_imports_manual.csv', {
+    download: true, header: true, dynamicTyping: true,
+    complete: r => res(r.data.filter(d => d.period)),
+    error: () => res([])
   }))
-]).then(([m, mm, fr, co, pa, en]) => {
-  const energy = parseEnergy(en);
+]).then(([m, mm, fr, co, pa, en, enM]) => {
+  // Energie: CEM-Pipeline primär, GACC-Handelsbilanz-Fallback fuer Monate,
+  // die die Pipeline noch nicht erzeugt hat.
+  const energy = mergeMonthly(parseEnergy(en), parseEnergy(enM));
   // Monatsschicht: API primär, GACC-Handelsbilanz als Fallback fuer Monate,
   // die die API noch nicht hat. Gilt fuer ALLE Top-Line-Charts.
   const mAll = mergeMonthly(m, mm);

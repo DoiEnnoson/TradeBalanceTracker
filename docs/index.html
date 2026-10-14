@@ -327,6 +327,14 @@ async function fetchCSV(name) {
   });
 }
 
+// Monats-Zeitreihe: API-Schicht primär, GACC-Handelsbilanz nur fuer Monate,
+// die die API noch nicht enthaelt. Kein Ueberschreiben vorhandener API-Monate.
+function mergeMonthly(api, manual) {
+  const have = new Set((api || []).map(d => d.date));
+  const extra = (manual || []).filter(d => d.date && !have.has(d.date));
+  return [...(api || []), ...extra].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+}
+
 // ── YTD KPIs ────────────────────────────────────────────────────
 function renderYTD(m) {
   const sorted = [...m].sort((a, b) => a.date.localeCompare(b.date));
@@ -786,16 +794,19 @@ Promise.all([
   }))
 ]).then(([m, mm, fr, co, pa, en]) => {
   const energy = parseEnergy(en);
-  renderYTD(m);
-  renderFlows(m);
-  renderYoY(m);
-  renderVpU(m, fr);
+  // Monatsschicht: API primär, GACC-Handelsbilanz als Fallback fuer Monate,
+  // die die API noch nicht hat. Gilt fuer ALLE Top-Line-Charts.
+  const mAll = mergeMonthly(m, mm);
+  renderYTD(mAll);
+  renderFlows(mAll);
+  renderYoY(mAll);
+  renderVpU(mAll, fr);
   renderIC(co);
   renderEnergyVol(energy);
   renderEnergyYoY(energy);
   renderEnergyYTD(energy);
   renderDiverging(pa);
-  renderDonuts(pa, m, mm);
+  renderDonuts(pa, mAll);
   renderBlocYoY(pa);
 }).catch(err => {
 

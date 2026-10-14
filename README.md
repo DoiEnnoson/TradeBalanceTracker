@@ -37,6 +37,9 @@ Overall trade figures. Coverage: January 2023 onwards.
 | balance_mln_usd | million USD |
 | total_mln_usd | million USD |
 
+### `china_trade_monthly_manual.csv`
+GACC fallback for the overall trade figures. Same columns as `china_trade_monthly.csv`. Holds only the months the chinadata.live API has not published yet, taken from the GACC monthly release via the `/handelsbilanz` workflow. See [Fallback layer](#fallback-layer).
+
 ### `china_trade_partners.csv`
 Trade by partner bloc. One row per month, wide format. Coverage: May 2026 onwards.
 
@@ -78,6 +81,21 @@ Physical trade volume (weight). Coverage: May 2026 onwards.
 | export_mln_t | million metric tons |
 | import_mln_t | million metric tons |
 | total_mln_t | million metric tons |
+
+---
+
+## Fallback layer
+
+The dashboard draws on two data layers with different update cadences:
+
+1. **API layer** — `china_trade_monthly.csv`, written by `monitor.py` from the chinadata.live API. Feeds the top-line charts (YTD, Trade Flows, Year-on-Year, Value per Unit, bloc-share totals).
+2. **Manual GACC layer** — written after each GACC release by the `/handelsbilanz` workflow: `china_trade_partners.csv`, `china_trade_commodities.csv`, `china_trade_freight.csv`, plus the fallback files `china_trade_monthly_manual.csv` (this repo) and `gacc_imports_manual.csv` (in the `china-energy-monitor` repo).
+
+The chinadata.live API usually lags the official GACC release by several days. Without a fallback, every chart bound to `china_trade_monthly.csv` sat a month behind the manual layer the moment the GACC figures were entered, and the bloc-share donuts rendered empty: they look up the latest partner month in the API file and found nothing.
+
+**Resolution (`docs/index.html`):** `mergeMonthly(api, manual)` builds the monthly series as *API primary, manual fallback* — manual rows fill only the months the API does not yet contain, and an existing API month is never overwritten. Once chinadata.live catches up, the API value automatically shadows the manual one. The same pattern feeds the energy charts via `gacc_imports_manual.csv` pulled from the `china-energy-monitor` repo. If neither layer has a given month, the chart renders nothing instead of erroring.
+
+This keeps the dashboard on the freshest GACC data without hardcoding numbers into the page and without manual edits to the API-managed `china_trade_monthly.csv`, which `monitor.py` would overwrite on its next run.
 
 ---
 

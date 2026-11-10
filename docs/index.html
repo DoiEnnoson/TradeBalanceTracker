@@ -824,12 +824,12 @@ Promise.all([
   fetchCSV('china_trade_commodities.csv'),
   fetchCSV('china_trade_partners.csv'),
   fetchCSV('hightech_share.csv'),
-  new Promise((res, rej) => Papa.parse(CEM_BASE + 'gacc_imports.csv?cb=' + Date.now(), {
+  new Promise((res, rej) => Papa.parse(BASE + 'gacc_imports.csv', {
     download: true, header: true, dynamicTyping: true,
     complete: r => res(r.data.filter(d => d.period)),
     error: rej
   })),
-  new Promise(res => Papa.parse(CEM_BASE + 'gacc_imports_manual.csv?cb=' + Date.now(), {
+  new Promise(res => Papa.parse(BASE + 'gacc_imports_manual.csv', {
     download: true, header: true, dynamicTyping: true,
     complete: r => res(r.data.filter(d => d.period)),
     error: () => res([])

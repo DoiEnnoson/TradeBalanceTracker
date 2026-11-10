@@ -237,6 +237,7 @@
 
 <!-- Energy Imports -->
 <div class="slabel">Energy Imports — Source: CEM / GACC</div>
+<div id="energy-debug" style="font-size:11px;color:#ff9900;padding:4px 8px;"></div>
 <div class="energy-grid">
   <div class="energy-left">
     <div class="cb">
@@ -846,6 +847,8 @@ Promise.all([
   renderYoY(mAll);
   renderVpU(mAll, fr);
   renderIC(co);
+  const dbg = document.getElementById('energy-debug');
+  if (dbg) dbg.textContent = `energy rows: ${energy.length} | last: ${energy.length ? energy[energy.length-1].date : 'none'} | raw en: ${en.length}`;
   renderEnergyVol(energy);
   renderEnergyYoY(energy);
   renderEnergyYTD(energy);
